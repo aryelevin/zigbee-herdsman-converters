@@ -4465,6 +4465,16 @@ export const fromZigbee = {
                 result.switch_3_icon = lookup[value[0]];
                 result.switch_3_text = String.fromCharCode(...textarr);
             }
+            if (msg.data[0xfff2] !== undefined) {
+                const value = msg.data[0xfff2] as number[];
+                // result.communication = value.map(byte => {
+                //     // Convert the number to a hexadecimal string
+                //     const hex = byte.toString(16);
+                //     // Pad with a leading zero if it's a single digit
+                //     return hex.padStart(2, '0');
+                // }).join('');
+                result.communication = Buffer.from(value).toString('hex');
+            }
             return result;
         },
     } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
@@ -6145,6 +6155,7 @@ export const toZigbee = {
             "switch_1_text_icon",
             "switch_2_text_icon",
             "switch_3_text_icon",
+            "communication"
         ],
         convertSet: async (entity, key, value, meta) => {
             if (key === "theme") {
@@ -6274,6 +6285,13 @@ export const toZigbee = {
                 }
                 await entity.write("manuSpecificLumi", {549: {value: payload, type: 0x41}}, manufacturerOptions.lumi);
                 return {state: statearr};
+            }
+            if (key === "communication") {
+                const valueString = value as string
+                const payload = valueString.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16));
+                assertObject(value);
+                await entity.write("manuSpecificLumi", {65522: {value: payload, type: 0x41}}, manufacturerOptions.lumi);
+                return {state: {communication: value}};
             }
             throw new Error(`Not supported: '${key}'`);
         },

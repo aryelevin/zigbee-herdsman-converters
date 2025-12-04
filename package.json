@@ -14,7 +14,7 @@
     ],
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/Koenkk/zigbee-herdsman-converters.git"
+        "url": "git+https://github.com/aryelevin/zigbee-herdsman-converters.git"
     },
     "keywords": [
         "aqara",
@@ -39,13 +39,13 @@
     "author": "Koen Kanters",
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/Koenkk/zigbee-herdsman-converters/issues"
+        "url": "https://github.com/aryelevin/zigbee-herdsman-converters/issues"
     },
-    "homepage": "https://github.com/Koenkk/zigbee-herdsman-converters",
+    "homepage": "https://github.com/aryelevin/zigbee-herdsman-converters",
     "dependencies": {
         "iconv-lite": "^0.7.0",
         "semver": "^7.7.3",
-        "zigbee-herdsman": "^7.0.0"
+        "https://github.com/aryelevin/zigbee-herdsman": "^7.0.0"
     },
     "exports": {
         ".": "./dist/index.js",
