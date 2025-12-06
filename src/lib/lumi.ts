@@ -6287,9 +6287,15 @@ export const toZigbee = {
                 return {state: statearr};
             }
             if (key === "communication") {
-                const valueString = value as string
-                const payload = valueString.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16));
+                logger.info("value is: " + value, NS);
+                const payload = [];
                 assertObject(value);
+                if (value.communication != null) {
+                    const valueString = value.communication as string;
+                    payload.push(...valueString.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)));
+                } else {
+                    payload.push(0x00);
+                }
                 await entity.write("manuSpecificLumi", {65522: {value: payload, type: 0x41}}, manufacturerOptions.lumi);
                 return {state: {communication: value}};
             }
