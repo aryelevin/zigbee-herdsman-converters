@@ -6287,7 +6287,7 @@ export const toZigbee = {
                 return {state: statearr};
             }
             if (key === "communication") {
-                logger.info("value is: " + value, NS);
+                logger.info("value is: " + JSON.stringify(value), NS);
                 const payload = [];
                 assertObject(value);
                 if (value.communication != null) {
@@ -6297,7 +6297,7 @@ export const toZigbee = {
                     payload.push(0x00);
                 }
                 await entity.write("manuSpecificLumi", {65522: {value: payload, type: 0x41}}, manufacturerOptions.lumi);
-                return {state: {communication: value}};
+                return {state: {communication: value.communication}};
             }
             throw new Error(`Not supported: '${key}'`);
         },
