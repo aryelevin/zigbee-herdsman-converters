@@ -3107,10 +3107,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Switch 3 text and icon")
                 .withFeature(e.enum("switch_3_icon", ea.STATE_SET, ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"]).withDescription("Icon"))
                 .withFeature(e.text("switch_3_text", ea.STATE_SET).withDescription("Text")),
-            e
-                .composite("communication", "communication", ea.STATE_SET)
-                .withDescription("Advanced Panel Communication")
-                .withFeature(e.text("communication", ea.STATE_SET).withDescription("Data")),
+            e.text("communication", ea.STATE_SET).withDescription("Advanced Panel Communication Data"),
         ],
         configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
