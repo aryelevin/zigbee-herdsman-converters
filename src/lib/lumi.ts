@@ -6289,16 +6289,16 @@ export const toZigbee = {
             if (key === "communication") {
                 logger.info("value is: " + JSON.stringify(value), NS);
                 const payload = [];
-                assertObject(value);
-                if (value.communication != null) {
+                assertString(value);
+                if (value != null) {
                     // const valueString = value.communication as string;
-                    payload.push(...value.communication.match(/.{1,2}/g)?.map((byte: string) => parseInt(byte, 16)));
+                    payload.push(...value.match(/.{1,2}/g)?.map((byte: string) => parseInt(byte, 16)));
                 } else {
                     payload.push(0x00);
                 }
                 logger.info('Payload is: ' + JSON.stringify(payload), NS);
                 await entity.write("manuSpecificLumi", {65522: {value: payload, type: 0x41}}, manufacturerOptions.lumi);
-                return {state: {communication: value.communication}};
+                return {state: {communication: value}};
             }
             throw new Error(`Not supported: '${key}'`);
         },
