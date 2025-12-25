@@ -1021,7 +1021,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
     }
 
     if (ultrasonicConfig) {
-        if (pirConfig.includes("otu_delay")) {
+        if (ultrasonicConfig.includes("otu_delay")) {
             settingsExtends.push(
                 numeric({
                     name: "ultrasonic_otu_delay",
@@ -1033,7 +1033,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
             );
             attributesForReading.push("ultrasonicOToUDelay");
         }
-        if (pirConfig.includes("uto_delay")) {
+        if (ultrasonicConfig.includes("uto_delay")) {
             settingsExtends.push(
                 numeric({
                     name: "ultrasonic_uto_delay",
@@ -1045,7 +1045,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
             );
             attributesForReading.push("ultrasonicUToODelay");
         }
-        if (pirConfig.includes("uto_threshold")) {
+        if (ultrasonicConfig.includes("uto_threshold")) {
             settingsExtends.push(
                 numeric({
                     name: "ultrasonic_uto_threshold",
@@ -1060,7 +1060,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
     }
 
     if (contactConfig) {
-        if (pirConfig.includes("otu_delay")) {
+        if (contactConfig.includes("otu_delay")) {
             settingsExtends.push(
                 numeric({
                     name: "contact_otu_delay",
@@ -1072,7 +1072,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
             );
             attributesForReading.push("contactOToUDelay");
         }
-        if (pirConfig.includes("uto_delay")) {
+        if (contactConfig.includes("uto_delay")) {
             settingsExtends.push(
                 numeric({
                     name: "contact_uto_delay",
@@ -1084,7 +1084,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
             );
             attributesForReading.push("contactUToODelay");
         }
-        if (pirConfig.includes("uto_threshold")) {
+        if (contactConfig.includes("uto_threshold")) {
             settingsExtends.push(
                 numeric({
                     name: "contact_uto_threshold",
@@ -2229,12 +2229,13 @@ function genericMeter(args: MeterArgs = {}) {
         toZigbee = [tz.metering_power, tz.currentsummdelivered, tz.currentsummreceived];
         delete configureLookup.haElectricalMeasurement;
     } else if (args.cluster === "metering" && args.type === "gas") {
-        if (args.power !== false) exposes.push(e.numeric("power", ea.STATE_GET).withUnit("m³/h").withDescription("Instantaneous gas flow in m³/h"));
-        if (args.energy !== false) exposes.push(e.numeric("energy", ea.ALL).withUnit("m³").withDescription("Total gas consumption in m³"));
+        if (args.power !== false)
+            exposes.push(e.numeric("volume_flow_rate", ea.STATE_GET).withUnit("m³/h").withDescription("Instantaneous gas flow in m³/h"));
+        if (args.energy !== false) exposes.push(e.numeric("gas", ea.ALL).withUnit("m³").withDescription("Total gas consumption in m³"));
         fromZigbee = [args.fzMetering ?? fz.gas_metering];
         toZigbee = [
             {
-                key: ["energy"],
+                key: ["gas"],
                 convertGet: async (entity, key, meta) => {
                     const ep = determineEndpoint(entity, meta, "seMetering");
                     await ep.read("seMetering", ["currentSummDelivered"]);
