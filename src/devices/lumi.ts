@@ -2915,7 +2915,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZNTGMK11LM",
         vendor: "Aqara",
         description: "Smart RGBW light controller",
-        extend: [m.light({colorTemp: {range: undefined}, color: {modes: ["xy"]}}), lumiZigbeeOTA()],
+        extend: [m.light({colorTemp: {range: undefined}, color: {modes: ["xy", "hs"]}}), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ["lumi.light.cwacn1"],
