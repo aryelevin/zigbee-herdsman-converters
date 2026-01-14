@@ -38,10 +38,14 @@ interface OwonAC2x1SpecificACControl {
     attributes: {};
     commands: {
         owonGetACIRCode: {};
-        owonSetACIRCode: {ir_code: number};
+        owonSetACIRCode: {
+            ir_code: number
+        };
     };
     commandResponses: {
-        owonGetACIRCode: {ir_code: number};
+        owonGetACIRCode: {
+            ir_code: number
+        };
     };
 }
 
@@ -205,7 +209,7 @@ const fzLocal = {
         convert: async (model, msg, publish, options, meta) => {
             console.log(JSON.stringify(msg));
             const data = msg.data;
-            const irCode = data.ir_code;
+            const irCode = msg.data.ir_code;
             console.log('IR Code is: ' + irCode);
             return irCode;
         },
