@@ -34,6 +34,17 @@ interface OwonFallDetection {
     commandResponses: never;
 }
 
+interface OwonAC2x1SpecificACControl {
+    attributes: {};
+    commands: {
+        owonGetACIRCode: {};
+        owonSetACIRCode: {ir_code: number};
+    };
+    commandResponses: {
+        owonGetACIRCode: {ir_code: number};
+    };
+}
+
 const fzLocal = {
     temperature: {
         ...fz.temperature,
@@ -190,7 +201,7 @@ const fzLocal = {
 
     AC2x1_ACIRCode: {
         cluster: 0xffac,
-        type: "commandOwonGetACIRCode",
+        type: ["commandOwonGetACIRCode"],
         convert: async (model, msg, publish, options, meta) => {
             console.log(JSON.stringify(msg));
             const data = msg.data;
@@ -198,7 +209,7 @@ const fzLocal = {
             console.log('IR Code is: ' + irCode);
             return irCode;
         },
-    } satisfies Fz.Converter<0xffac, undefined, "commandOwonGetACIRCode">,
+    } satisfies Fz.Converter<0xffac, OwonAC2x1SpecificACControl, ["commandOwonGetACIRCode"]>,
 };
 
 const tzLocal = {
@@ -261,11 +272,11 @@ const tzLocal = {
         key: ["ac_ir_code"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertEndpoint(entity);
-            await entity.command(0xffac, 0x20, {ir_code: value}, {disableDefaultResponse: true, manufacturerCode: 0x113c});
+            await entity.command<"specificACControlOwon", "owonSetACIRCode", OwonAC2x1SpecificACControl>(0xffac, 0x20, {ir_code: value}, {disableDefaultResponse: true, manufacturerCode: 0x113c});
         },
         convertGet: async (entity, key, meta) => {
             utils.assertEndpoint(entity);
-            await entity.command(0xffac, 0x00, {}, {disableDefaultResponse: true, manufacturerCode: 0x113c});
+            await entity.command<"specificACControlOwon", "owonGetACIRCode", OwonAC2x1SpecificACControl>(0xffac, 0x00, {}, {disableDefaultResponse: true, manufacturerCode: 0x113c});
         },
     } satisfies Tz.Converter,
 };
