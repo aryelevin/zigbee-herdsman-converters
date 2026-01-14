@@ -80,7 +80,7 @@ const valueConverterLocal = {
             const decoder = new TextDecoder("utf-8"); // "utf-8" is the default encoding
             const decodedString: string = decoder.decode(uint8Array);
 
-            // console.log(decodedString);
+            console.log('The name decoded as: ' + decodedString);
 
             return decodedString;
 
