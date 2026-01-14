@@ -262,7 +262,7 @@ const tzLocal = {
         },
         convertGet: async (entity, key, meta) => {
             utils.assertEndpoint(entity);
-            await entity.zclCommand(0xffac, {ID: 0x00, name: 'ircoderead', parameters: []}, {}, {disableDefaultResponse: true, manufacturerCode: 0x113c});
+            await entity.command(0xffac, 0x00, {}, {disableDefaultResponse: true, manufacturerCode: 0x113c});
         },
     } satisfies Tz.Converter,
 };
@@ -329,12 +329,21 @@ export const definitions: DefinitionWithExtend[] = [
                 manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
                 attributes: {},
                 commands: {
+                    owonGetACIRCode: {
+                        ID: 0x00,
+                        parameters: [],
+                    },
                     owonSetACIRCode: {
                         ID: 0x20,
                         parameters: [{name: "ir_code", type: Zcl.DataType.UINT16}],
                     },
                 },
-                commandsResponse: {},
+                commandsResponse: {
+                    owonGetACIRCode: {
+                        ID: 0x00,
+                        parameters: [{name: "ir_code", type: Zcl.DataType.UINT16}],
+                    },
+                },
             }),
         ],
         fromZigbee: [fz.fan, fz.thermostat, fzLocal.AC2x1_ACIRCode],
