@@ -331,7 +331,7 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {
                     owonSetACIRCode: {
                         ID: 0x20,
-                        parameters: [{name: "ir_code", type: Zcl.BuffaloZclDataType.LIST_UINT16}],
+                        parameters: [{name: "ir_code", type: Zcl.DataType.UINT16}],
                     },
                 },
                 commandsResponse: {},
