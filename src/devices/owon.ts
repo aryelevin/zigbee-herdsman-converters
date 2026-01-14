@@ -205,9 +205,9 @@ const fzLocal = {
         convert: async (model, msg, publish, options, meta) => {
             console.log(JSON.stringify(msg));
             const data = msg.data;
-            // const irCode = data.ir_code;
-            // console.log('IR Code is: ' + irCode);
-            // return irCode;
+            const irCode = data.ir_code;
+            console.log('IR Code is: ' + irCode);
+            return irCode;
         },
     } satisfies Fz.Converter<"specificACControlOwon", OwonAC2x1SpecificACControl, ["commandOwonGetACIRCode"]>,
 };
