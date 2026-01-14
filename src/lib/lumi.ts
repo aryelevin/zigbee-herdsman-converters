@@ -4789,7 +4789,7 @@ export const fromZigbee = {
                 //     // Pad with a leading zero if it's a single digit
                 //     return hex.padStart(2, '0');
                 // }).join('');
-                result.communication = Buffer.from(value).toString('hex');
+                result.communication = Buffer.from(value).toString("hex");
             }
             return result;
         },
@@ -6454,7 +6454,7 @@ export const toZigbee = {
             "switch_1_text_icon",
             "switch_2_text_icon",
             "switch_3_text_icon",
-            "communication"
+            "communication",
         ],
         convertSet: async (entity, key, value, meta) => {
             if (key === "theme") {
@@ -6586,16 +6586,16 @@ export const toZigbee = {
                 return {state: statearr};
             }
             if (key === "communication") {
-                logger.info("value is: " + JSON.stringify(value), NS);
+                logger.info(`value is: ${JSON.stringify(value)}`, NS);
                 const payload = [];
                 assertString(value);
                 if (value != null) {
                     // const valueString = value.communication as string;
-                    payload.push(...value.match(/.{1,2}/g)?.map((byte: string) => parseInt(byte, 16)));
+                    payload.push(...value.match(/.{1,2}/g).map((byte: string) => Number.parseInt(byte, 16)));
                 } else {
                     payload.push(0x00);
                 }
-                logger.info('Payload is: ' + JSON.stringify(payload), NS);
+                logger.info(`Payload is: ${JSON.stringify(payload)}`, NS);
                 await entity.write("manuSpecificLumi", {65522: {value: payload, type: 0x41}}, manufacturerOptions.lumi);
                 return {state: {communication: value}};
             }

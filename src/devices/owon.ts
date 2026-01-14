@@ -6,7 +6,6 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
-import type {ClusterCommandKeys, ClusterOrRawAttributeKeys, ClusterOrRawPayload, TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -35,16 +34,16 @@ interface OwonFallDetection {
 }
 
 interface OwonAC2x1SpecificACControl {
-    attributes: {};
+    attributes: never;
     commands: {
-        owonGetACIRCode: {};
+        owonGetACIRCode: Record<string, never>;
         owonSetACIRCode: {
-            ir_code: number
+            irCode: number;
         };
     };
     commandResponses: {
-        owonGetACIRCode: {
-            ir_code: number
+        owonGetACIRCodeRsp: {
+            irCode: number;
         };
     };
 }
@@ -203,17 +202,17 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<"fallDetectionOwon", OwonFallDetection, ["attributeReport", "readResponse"]>,
 
-    AC2x1_ACIRCode: {
+    aC2x1ACIRCode: {
         cluster: "specificACControlOwon",
-        type: ["commandOwonGetACIRCode"],
-        convert: async (model, msg, publish, options, meta) => {
+        type: ["commandOwonGetACIRCodeRsp"],
+        convert: (model, msg, publish, options, meta) => {
             console.log(JSON.stringify(msg));
             const data = msg.data;
-            const irCode = msg.data.ir_code;
-            console.log('IR Code is: ' + irCode);
-            return irCode;
+            const irCode = data.irCode;
+            console.log(`IR Code is: ${irCode}`);
+            return data;
         },
-    } satisfies Fz.Converter<"specificACControlOwon", OwonAC2x1SpecificACControl, ["commandOwonGetACIRCode"]>,
+    } satisfies Fz.Converter<"specificACControlOwon", OwonAC2x1SpecificACControl, ["commandOwonGetACIRCodeRsp"]>,
 };
 
 const tzLocal = {
@@ -272,16 +271,26 @@ const tzLocal = {
         },
     } satisfies Tz.Converter,
 
-    AC2x1_ACIRCode: {
+    aC2x1ACIRCode: {
         key: ["ac_ir_code"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertEndpoint(entity);
             utils.assertNumber(value);
-            await entity.command<"specificACControlOwon", "owonSetACIRCode", OwonAC2x1SpecificACControl>("specificACControlOwon", "owonSetACIRCode", {ir_code: value}, {disableDefaultResponse: true, manufacturerCode: 0x113c});
+            await entity.command<"specificACControlOwon", "owonSetACIRCode", OwonAC2x1SpecificACControl>(
+                "specificACControlOwon",
+                "owonSetACIRCode",
+                {irCode: value},
+                {disableDefaultResponse: true, manufacturerCode: 0x113c},
+            );
         },
         convertGet: async (entity, key, meta) => {
             utils.assertEndpoint(entity);
-            await entity.command<"specificACControlOwon", "owonGetACIRCode", OwonAC2x1SpecificACControl>("specificACControlOwon", "owonGetACIRCode", {}, {disableDefaultResponse: true, manufacturerCode: 0x113c});
+            await entity.command<"specificACControlOwon", "owonGetACIRCode", OwonAC2x1SpecificACControl>(
+                "specificACControlOwon",
+                "owonGetACIRCode",
+                {},
+                {disableDefaultResponse: true, manufacturerCode: 0x113c},
+            );
         },
     } satisfies Tz.Converter,
 };
@@ -354,18 +363,18 @@ export const definitions: DefinitionWithExtend[] = [
                     },
                     owonSetACIRCode: {
                         ID: 0x20,
-                        parameters: [{name: "ir_code", type: Zcl.DataType.UINT16}],
+                        parameters: [{name: "irCode", type: Zcl.DataType.UINT16, max: 0xffff}],
                     },
                 },
                 commandsResponse: {
-                    owonGetACIRCode: {
+                    owonGetACIRCodeRsp: {
                         ID: 0x00,
-                        parameters: [{name: "ir_code", type: Zcl.DataType.UINT16}],
+                        parameters: [{name: "irCode", type: Zcl.DataType.UINT16, max: 0xffff}],
                     },
                 },
             }),
         ],
-        fromZigbee: [fz.fan, fz.thermostat, fzLocal.AC2x1_ACIRCode],
+        fromZigbee: [fz.fan, fz.thermostat, fzLocal.aC2x1ACIRCode],
         toZigbee: [
             tz.fan_mode,
             tz.thermostat_system_mode,
@@ -373,7 +382,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_occupied_cooling_setpoint,
             tz.thermostat_ac_louver_position,
             tz.thermostat_local_temperature,
-            tzLocal.AC2x1_ACIRCode
+            tzLocal.aC2x1ACIRCode,
         ],
         exposes: [
             e
