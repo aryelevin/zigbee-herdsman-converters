@@ -5,6 +5,7 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -255,9 +256,11 @@ const tzLocal = {
     AC2x1_ACIRCode: {
         key: ["ac_ir_code"],
         convertSet: async (entity, key, value, meta) => {
+            utils.assertEndpoint(entity);
             await entity.zclCommand(0xffac, 0x20, value, {disableDefaultResponse: true, manufacturerCode: 0x113c});
         },
         convertGet: async (entity, key, meta) => {
+            utils.assertEndpoint(entity);
             await entity.zclCommand(0xffac, 0x00, {}, {disableDefaultResponse: true, manufacturerCode: 0x113c});
         },
     } satisfies Tz.Converter,
