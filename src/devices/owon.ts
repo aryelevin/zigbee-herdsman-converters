@@ -272,6 +272,7 @@ const tzLocal = {
         key: ["ac_ir_code"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertEndpoint(entity);
+            utils.assertNumber(value);
             await entity.command<"specificACControlOwon", "owonSetACIRCode", OwonAC2x1SpecificACControl>('specificACControlOwon', 'owonSetACIRCode', {ir_code: value}, {disableDefaultResponse: true, manufacturerCode: 0x113c});
         },
         convertGet: async (entity, key, meta) => {
