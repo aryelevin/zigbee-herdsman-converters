@@ -258,7 +258,7 @@ const tzLocal = {
         key: ["ac_ir_code"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertEndpoint(entity);
-            await entity.zclCommand(0xffac, {ID: 0x20, name: 'ircodewrite', parameters: []}, {value: value} /*as ClusterOrRawPayload<Cl, typeof setCommand, Custom>*/, {disableDefaultResponse: true, manufacturerCode: 0x113c});
+            await entity.command(0xffac, 0x20, {value: value}, {disableDefaultResponse: true, manufacturerCode: 0x113c});
         },
         convertGet: async (entity, key, meta) => {
             utils.assertEndpoint(entity);
