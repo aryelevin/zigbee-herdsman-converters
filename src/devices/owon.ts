@@ -185,6 +185,15 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"fallDetectionOwon", OwonFallDetection, ["attributeReport", "readResponse"]>,
+
+    AC2x1_ACIRCode: {
+        cluster: 0xffac,
+        type: "raw",
+        convert: async (model, msg, publish, options, meta) => {
+            console.log(JSON.stringify(msg));
+            const data = msg.data;
+        },
+    } satisfies Fz.Converter<0xffac, undefined, "raw">,
 };
 
 const tzLocal = {
@@ -240,6 +249,16 @@ const tzLocal = {
                 ],
                 {manufacturerCode: 0x113c},
             );
+        },
+    } satisfies Tz.Converter,
+
+    AC2x1_ACIRCode: {
+        key: ["ac_ir_code"],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.command(0xffac, 0x20, {}, {disableDefaultResponse: true, manufacturerCode: 0x113c});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.command(0xffac, 0x00, {}, {disableDefaultResponse: true, manufacturerCode: 0x113c});
         },
     } satisfies Tz.Converter,
 };
@@ -300,7 +319,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "AC201",
         vendor: "OWON",
         description: "HVAC controller/IR blaster",
-        fromZigbee: [fz.fan, fz.thermostat],
+        fromZigbee: [fz.fan, fz.thermostat, fzLocal.AC2x1_ACIRCode],
         toZigbee: [
             tz.fan_mode,
             tz.thermostat_system_mode,
@@ -308,6 +327,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_occupied_cooling_setpoint,
             tz.thermostat_ac_louver_position,
             tz.thermostat_local_temperature,
+            tzLocal.AC2x1_ACIRCode
         ],
         exposes: [
             e
@@ -318,6 +338,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withAcLouverPosition(["fully_open", "fully_closed", "half_open", "quarter_open", "three_quarters_open"])
                 .withLocalTemperature(),
             e.fan().withState("fan_state").withModes(["low", "medium", "high", "on", "auto"]),
+            e.numeric("ac_ir_code", ea.ALL).withUnit("").withValueMin(0).withValueMax(999).withDescription("AC IR Code"),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
