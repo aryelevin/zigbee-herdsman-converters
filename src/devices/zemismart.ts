@@ -59,18 +59,6 @@ const valueConverterLocal = {
             return limitedString.split("").map((char) => char.charCodeAt(0));
         },
         from: (v: number, meta: Fz.Meta) => {
-            return Object.values(v)
-                .map((code) => String.fromCharCode(code))
-                .join("");
-        },
-    },
-    cycleSchedule: {
-        to: (v: string, meta: Tz.Meta) => {
-            const stringValue = String(v ?? "");
-            const limitedString = stringValue.slice(0, 12);
-            return limitedString.split("").map((char) => char.charCodeAt(0));
-        },
-        from: (v: number, meta: Fz.Meta) => {
             console.log('Input is: ' + JSON.stringify(v));
             const data = Object.values(v);
             console.log(JSON.stringify(data));
@@ -89,6 +77,18 @@ const valueConverterLocal = {
             // return Object.values(v)
             //     .map((code) => String.fromCharCode(code))
             //     .join("");
+        },
+    },
+    cycleSchedule: {
+        to: (v: string, meta: Tz.Meta) => {
+            const stringValue = String(v ?? "");
+            const limitedString = stringValue.slice(0, 12);
+            return limitedString.split("").map((char) => char.charCodeAt(0));
+        },
+        from: (v: number, meta: Fz.Meta) => {
+            return Object.values(v)
+                .map((code) => String.fromCharCode(code))
+                .join("");
         },
     },
 };
