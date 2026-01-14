@@ -258,7 +258,7 @@ const tzLocal = {
         key: ["ac_ir_code"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertEndpoint(entity);
-            await entity.command(0xffac, 0x20, {value: value}, {disableDefaultResponse: true, manufacturerCode: 0x113c});
+            await entity.command(0xffac, 0x20, {ir_code: value}, {disableDefaultResponse: true, manufacturerCode: 0x113c});
         },
         convertGet: async (entity, key, meta) => {
             utils.assertEndpoint(entity);
@@ -331,7 +331,7 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {
                     owonSetACIRCode: {
                         ID: 0x20,
-                        parameters: [],
+                        parameters: ['ir_code'],
                     },
                 },
                 commandsResponse: {},
