@@ -325,7 +325,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.fanMode(endpoint);
             await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat"]);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatOccupiedCoolingSetpoint(endpoint);
             await reporting.thermostatTemperature(endpoint, {min: 60, max: 600, change: 0.1});
             await reporting.thermostatSystemMode(endpoint);
             await reporting.thermostatAcLouverPosition(endpoint);
