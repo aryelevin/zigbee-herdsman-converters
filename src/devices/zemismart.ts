@@ -1,4 +1,3 @@
-import { logger } from "src/lib/logger";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -81,7 +80,7 @@ const valueConverterLocal = {
             const decoder = new TextDecoder("utf-8"); // "utf-8" is the default encoding
             const decodedString: string = decoder.decode(uint8Array);
 
-            logger.info(decodedString, 'Zemismart:name:from');
+            // console.log(decodedString);
 
             return decodedString;
 
