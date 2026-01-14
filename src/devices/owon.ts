@@ -210,7 +210,7 @@ const fzLocal = {
             const data = msg.data;
             const irCode = data.irCode;
             console.log(`IR Code is: ${irCode}`);
-            return data;
+            return {ac_ir_code: irCode};
         },
     } satisfies Fz.Converter<"specificACControlOwon", OwonAC2x1SpecificACControl, ["commandOwonGetACIRCodeRsp"]>,
 };
