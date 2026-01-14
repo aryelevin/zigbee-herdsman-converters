@@ -71,7 +71,9 @@ const valueConverterLocal = {
             return limitedString.split("").map((char) => char.charCodeAt(0));
         },
         from: (v: number, meta: Fz.Meta) => {
+            console.log('Input is: ' + JSON.stringify(v));
             const data = Object.values(v);
+            console.log(JSON.stringify(data));
 
             // Convert the standard TypeScript number[] to a Uint8Array
             const uint8Array = new Uint8Array(data);
