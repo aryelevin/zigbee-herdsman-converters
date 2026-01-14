@@ -206,7 +206,6 @@ const fzLocal = {
         cluster: "specificACControlOwon",
         type: ["commandOwonGetACIRCodeRsp"],
         convert: (model, msg, publish, options, meta) => {
-            console.log(JSON.stringify(msg));
             const data = msg.data;
             const irCode = data.irCode;
             console.log(`IR Code is: ${irCode}`);
@@ -280,7 +279,7 @@ const tzLocal = {
                 "specificACControlOwon",
                 "owonSetACIRCode",
                 {irCode: value},
-                {disableDefaultResponse: true, manufacturerCode: 0x113c},
+                {disableDefaultResponse: true, manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC},
             );
         },
         convertGet: async (entity, key, meta) => {
@@ -289,7 +288,7 @@ const tzLocal = {
                 "specificACControlOwon",
                 "owonGetACIRCode",
                 {},
-                {disableDefaultResponse: true, manufacturerCode: 0x113c},
+                {disableDefaultResponse: true, manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC},
             );
         },
     } satisfies Tz.Converter,
