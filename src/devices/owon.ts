@@ -255,10 +255,10 @@ const tzLocal = {
     AC2x1_ACIRCode: {
         key: ["ac_ir_code"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command(0xffac, 0x20, {}, {disableDefaultResponse: true, manufacturerCode: 0x113c});
+            await entity.zclCommand(0xffac, 0x20, value, {disableDefaultResponse: true, manufacturerCode: 0x113c});
         },
         convertGet: async (entity, key, meta) => {
-            await entity.command(0xffac, 0x00, {}, {disableDefaultResponse: true, manufacturerCode: 0x113c});
+            await entity.zclCommand(0xffac, 0x00, {}, {disableDefaultResponse: true, manufacturerCode: 0x113c});
         },
     } satisfies Tz.Converter,
 };
