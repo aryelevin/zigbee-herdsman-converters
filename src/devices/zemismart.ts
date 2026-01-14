@@ -56,12 +56,19 @@ const valueConverterLocal = {
         to: (v: string, meta: Tz.Meta) => {
             const stringValue = String(v ?? "");
             const limitedString = stringValue.slice(0, 12);
-            return limitedString.split("").map((char) => char.charCodeAt(0));
+            // Create a TextEncoder instance (defaults to 'utf-8')
+            const encoder = new TextEncoder();
+
+            // Encode the string into a Uint8Array (an array of 8-bit unsigned integers)
+            const uint8Array: Uint8Array = encoder.encode(limitedString);
+
+            // You can convert this Uint8Array to a standard JavaScript number[] if strictly necessary:
+            const numberArray: number[] = Array.from(uint8Array);
+            return numberArray;
+            // return limitedString.split("").map((char) => char.charCodeAt(0));
         },
         from: (v: number, meta: Fz.Meta) => {
-            console.log('Input is: ' + JSON.stringify(v));
             const data = Object.values(v);
-            console.log(JSON.stringify(data));
 
             // Convert the standard TypeScript number[] to a Uint8Array
             const uint8Array = new Uint8Array(data);
@@ -83,12 +90,34 @@ const valueConverterLocal = {
         to: (v: string, meta: Tz.Meta) => {
             const stringValue = String(v ?? "");
             const limitedString = stringValue.slice(0, 12);
-            return limitedString.split("").map((char) => char.charCodeAt(0));
+            // Create a TextEncoder instance (defaults to 'utf-8')
+            const encoder = new TextEncoder();
+
+            // Encode the string into a Uint8Array (an array of 8-bit unsigned integers)
+            const uint8Array: Uint8Array = encoder.encode(limitedString);
+
+            // You can convert this Uint8Array to a standard JavaScript number[] if strictly necessary:
+            const numberArray: number[] = Array.from(uint8Array);
+            return numberArray;
+            // return limitedString.split("").map((char) => char.charCodeAt(0));
         },
         from: (v: number, meta: Fz.Meta) => {
-            return Object.values(v)
-                .map((code) => String.fromCharCode(code))
-                .join("");
+            const data = Object.values(v);
+
+            // Convert the standard TypeScript number[] to a Uint8Array
+            const uint8Array = new Uint8Array(data);
+
+            // Use TextDecoder to decode the Uint8Array into a UTF-8 string
+            const decoder = new TextDecoder("utf-8"); // "utf-8" is the default encoding
+            const decodedString: string = decoder.decode(uint8Array);
+
+            console.log('The cycleSchedule decoded as: ' + decodedString);
+
+            return decodedString;
+
+            // return Object.values(v)
+            //     .map((code) => String.fromCharCode(code))
+            //     .join("");
         },
     },
 };
