@@ -190,12 +190,15 @@ const fzLocal = {
 
     AC2x1_ACIRCode: {
         cluster: 0xffac,
-        type: "raw",
+        type: "commandOwonGetACIRCode",
         convert: async (model, msg, publish, options, meta) => {
             console.log(JSON.stringify(msg));
             const data = msg.data;
+            const irCode = data.ir_code;
+            console.log('IR Code is: ' + irCode);
+            return irCode;
         },
-    } satisfies Fz.Converter<0xffac, undefined, "raw">,
+    } satisfies Fz.Converter<0xffac, undefined, "commandOwonGetACIRCode">,
 };
 
 const tzLocal = {
