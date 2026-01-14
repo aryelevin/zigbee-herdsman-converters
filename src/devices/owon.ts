@@ -323,6 +323,20 @@ export const definitions: DefinitionWithExtend[] = [
         model: "AC201",
         vendor: "OWON",
         description: "HVAC controller/IR blaster",
+        extend: [
+            m.deviceAddCustomCluster("specificACControlOwon", {
+                ID: 0xffac,
+                manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                attributes: {},
+                commands: {
+                    owonSetACIRCode: {
+                        ID: 0x20,
+                        parameters: [],
+                    },
+                },
+                commandsResponse: {},
+            }),
+        ],
         fromZigbee: [fz.fan, fz.thermostat, fzLocal.AC2x1_ACIRCode],
         toZigbee: [
             tz.fan_mode,
