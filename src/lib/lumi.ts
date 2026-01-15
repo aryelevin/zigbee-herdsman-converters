@@ -5092,6 +5092,7 @@ export const fromZigbee = {
                         logger.debug(`Unknown key ${key} = ${value}`, "zhc:lumi:vrfcontroller");
                 }
             });
+            logger.info(`AC Data to be returned: ${result}`, "zhc:lumi:vrfcontroller");
             return result;
         },
     } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
