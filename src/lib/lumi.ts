@@ -5002,7 +5002,7 @@ export const fromZigbee = {
                             logger.debug(`Cannot handle ${value}, frame too small`, "zhc:lumi:vrfcontroller");
                             return;
                         }
-                        logger.info(`Received VRF controller data: ${value}`, "zhc:lumi:vrfcontroller");
+                        // logger.debug(`Received VRF controller data: ${value}`, "zhc:lumi:vrfcontroller");
                         // @ts-expect-error ignore
                         const payloadValueLength = value.length;
                         // @ts-expect-error ignore
@@ -5076,70 +5076,6 @@ export const fromZigbee = {
                                                             : "unknown";
                                             logger.info(`AC Unit ${acNo} mode set to ${paramForItem}`, "zhc:lumi:vrfcontroller");
                                         }
-                                    }
-
-                                    switch (attr.readInt32BE()) {
-                                        case 0x04150055: // feeding
-                                            result.feed = "";
-                                            break;
-                                        case 0x041502bc: {
-                                            // feeding report
-                                            const report = val.toString();
-                                            result.feeding_source = {0: "schedule", 1: "manual", 2: "remote"}[
-                                                Number.parseInt(report.slice(0, 2), 10)
-                                            ];
-                                            result.feeding_size = Number.parseInt(report.slice(3, 4), 10);
-                                            break;
-                                        }
-                                        case 0x0d680055: // portions per day
-                                            result.portions_per_day = val.readUInt16BE();
-                                            break;
-                                        case 0x0d690055: // weight per day
-                                            result.weight_per_day = val.readUInt32BE();
-                                            break;
-                                        case 0x0d0b0055: // error ?
-                                            result.error = getFromLookup(val.readUInt8(), {1: true, 0: false});
-                                            break;
-                                        case 0x080008c8: {
-                                            // schedule string
-                                            const schlist = val.toString().split(",");
-                                            const schedule: unknown[] = [];
-                                            schlist.forEach((str: string) => {
-                                                // 7f13000100
-                                                if (str !== "//") {
-                                                    const feedtime = Buffer.from(str, "hex");
-                                                    schedule.push({
-                                                        days: getFromLookup(feedtime[0], feederDaysLookup),
-                                                        hour: feedtime[1],
-                                                        minute: feedtime[2],
-                                                        size: feedtime[3],
-                                                    });
-                                                }
-                                            });
-                                            result.schedule = schedule;
-                                            break;
-                                        }
-                                        case 0x04170055: // indicator
-                                            result.led_indicator = getFromLookup(val.readUInt8(), {1: "ON", 0: "OFF"});
-                                            break;
-                                        case 0x04160055: // child lock
-                                            result.child_lock = getFromLookup(val.readUInt8(), {1: "LOCK", 0: "UNLOCK"});
-                                            break;
-                                        case 0x04180055: // mode
-                                            result.mode = getFromLookup(val.readUInt8(), {1: "schedule", 0: "manual"});
-                                            break;
-                                        case 0x0e5c0055: // serving size
-                                            result.serving_size = val.readUInt8();
-                                            break;
-                                        case 0x0e5f0055: // portion weight
-                                            result.portion_weight = val.readUInt8();
-                                            break;
-                                        case 0x080007d1: // ? 64
-                                        case 0x0d090055: // ? 00
-                                            logger.debug(`Unhandled attribute ${attr} = ${val}`, "zhc:lumi:vrfcontroller");
-                                            break;
-                                        default:
-                                            logger.debug(`Unknown attribute ${attr} = ${val}`, "zhc:lumi:vrfcontroller");
                                     }
                                 }
                             }
