@@ -5415,10 +5415,17 @@ export const definitions: DefinitionWithExtend[] = [
                     const epName = `l${i}`;
                     features.push(e.binary("state", exposes.access.STATE_SET, "ON", "OFF").withEndpoint(epName));
                     features.push(
-                        e.climate().withSystemMode(["cool", "heat", "auto", "dry", "fan_only"]).withLocalTemperature().withEndpoint(epName),
+                        e
+                            .climate()
+                            .withSystemMode(["cool", "heat", "auto", "dry", "fan_only"])
+                            .withLocalTemperature()
+                            .withFanMode(["auto", "low", "medium", "high"])
+                            .withSetpoint("occupied_heating_setpoint", 16, 30, 1, ea.ALL)
+                            .withSetpoint("occupied_cooling_setpoint", 16, 30, 1, ea.ALL)
+                            .withEndpoint(epName),
                     );
-                    features.push(e.climate().withFanMode(["auto", "low", "medium", "high"]).withEndpoint(epName));
-                    features.push(e.climate().withSetpoint("occupied_heating_setpoint", 16, 30, 1, ea.ALL).withEndpoint(epName));
+                    // features.push(e.climate().withFanMode(["auto", "low", "medium", "high"]).withEndpoint(epName));
+                    // features.push(e.climate().withSetpoint("occupied_heating_setpoint", 16, 30, 1, ea.ALL).withEndpoint(epName));
                     // features.push(
                     //     e
                     //         .numeric("min_heat_setpoint_limit", ea.ALL)
@@ -5439,7 +5446,7 @@ export const definitions: DefinitionWithExtend[] = [
                     //         .withValueStep(0.5)
                     //         .withEndpoint(epName),
                     // );
-                    features.push(e.climate().withSetpoint("occupied_cooling_setpoint", 16, 30, 1, ea.ALL).withEndpoint(epName));
+                    // features.push(e.climate().withSetpoint("occupied_cooling_setpoint", 16, 30, 1, ea.ALL).withEndpoint(epName));
                     // features.push(
                     //     e
                     //         .numeric("min_cool_setpoint_limit", ea.ALL)
@@ -5466,22 +5473,6 @@ export const definitions: DefinitionWithExtend[] = [
 
             return features;
         },
-        // exposes: [
-        //     e
-        //         .list(
-        //             "acUnits",
-        //             ea.STATE_SET,
-        //             e
-        //                 .composite("acUnit", "acUnit", exposes.access.STATE_SET)
-        //                 .withFeature(e.binary("state", exposes.access.STATE_SET, "ON", "OFF"))
-        //                 .withFeature(e.enum("mode", exposes.access.STATE_SET, ["heat", "cool", "auto", "dry", "fan_only"]))
-        //                 .withFeature(e.enum("fan_mode", exposes.access.STATE_SET, ["auto", "low", "medium", "high"]))
-        //                 .withFeature(e.numeric("cooling_temperature_setpoint", exposes.access.STATE_SET))
-        //                 .withFeature(e.numeric("heating_temperature_setpoint", exposes.access.STATE_SET))
-        //                 .withFeature(e.numeric("local_temperature", exposes.access.STATE_SET)),
-        //         )
-        //         .withDescription("AC Units"),
-        // ],
         options: [
             e
                 .numeric("ac_amount", ea.STATE_SET)
