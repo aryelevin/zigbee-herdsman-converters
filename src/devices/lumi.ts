@@ -5403,8 +5403,8 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [lumi.fromZigbee.aqara_vrf_coontroller],
         toZigbee: [lumi.toZigbee.aqara_vrf_controller],
         exposes: (device, options) => {
-            logger.info(`Aqara VRF Controller T1 device: ${JSON.stringify(device)}`, NS);
-            logger.info(`Aqara VRF Controller T1 device options: ${JSON.stringify(options)}`, NS);
+            // logger.info(`Aqara VRF Controller T1 device: ${JSON.stringify(device)}`, NS);
+            // logger.info(`Aqara VRF Controller T1 device options: ${JSON.stringify(options)}`, NS);
             const features = [];
 
             if (!utils.isDummyDevice(device) && options?.ac_amount !== undefined && typeof options.ac_amount === "number") {
@@ -5413,7 +5413,11 @@ export const definitions: DefinitionWithExtend[] = [
                     // const endpoint = device?.getEndpoint(i);
                     // if (endpoint !== undefined) {
                     const epName = `l${i}`;
-                    features.push(e.climate().withSystemMode(["off", "cool", "heat"]).withLocalTemperature().withEndpoint(epName));
+                    features.push(e.binary("state", exposes.access.STATE_SET, "ON", "OFF").withEndpoint(epName));
+                    features.push(
+                        e.climate().withSystemMode(["cool", "heat", "auto", "dry", "fan_only"]).withLocalTemperature().withEndpoint(epName),
+                    );
+                    features.push(e.climate().withFanMode(["auto", "low", "medium", "high"]).withEndpoint(epName));
                     features.push(e.climate().withSetpoint("occupied_heating_setpoint", 5, 30, 0.5, ea.ALL).withEndpoint(epName));
                     // features.push(
                     //     e
