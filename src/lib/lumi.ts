@@ -5056,13 +5056,13 @@ export const fromZigbee = {
                                     } else if (param === 0x0e) {
                                         if (paramACNo < 0x8c) {
                                             // Fan
-                                            const fanSetting = val.readUInt32();
+                                            const fanSetting = val.readUInt32BE();
                                             const paramForItem = ["auto", "low", "medium", "high"][fanSetting]; // fanSetting === 0x00000001 ? 1 : fanSetting === 0x00000002 ? 2 : fanSetting === 0x00000003 ? 3 : 0;
                                             logger.info(`AC Unit ${acNo} fan speed set to ${paramForItem}`, "zhc:lumi:vrfcontroller");
                                             result[`fan_mode_l${acNo}`] = paramForItem;
                                         } else {
                                             // Mode
-                                            const modeSetting = val.readUInt32();
+                                            const modeSetting = val.readUInt32BE();
                                             const paramForItem =
                                                 modeSetting === 0x00
                                                     ? "auto"
