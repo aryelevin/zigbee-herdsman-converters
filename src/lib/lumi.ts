@@ -5041,10 +5041,13 @@ export const fromZigbee = {
                                         // On-Off
                                         const paramForItem = !(val.readUInt8() === 0x00);
                                         logger.info(`AC Unit ${acNo} is now turned ${paramForItem ? "ON" : "OFF"}`, "zhc:lumi:vrfcontroller");
+                                        result[`state_l${acNo}`] = paramForItem ? "ON" : "OFF";
                                     } else if (param === 0x01) {
                                         // Target temp
                                         const paramForItem = getFloatFromHex32Bit(val.toString("hex"));
                                         logger.info(`AC Unit ${acNo} target temperature set to ${paramForItem}°C`, "zhc:lumi:vrfcontroller");
+                                        result[`occupied_heating_setpoint_l${acNo}`] = paramForItem / 100;
+                                        result[`occupied_cooling_setpoint_l${acNo}`] = paramForItem / 100;
                                     } else if (param === 0x00) {
                                         // Current temp
                                         const paramForItem = getFloatFromHex32Bit(val.toString("hex"));
@@ -5054,12 +5057,9 @@ export const fromZigbee = {
                                         if (paramACNo < 0x8c) {
                                             // Fan
                                             const fanSetting = val.readUint32();
-                                            const paramForItem =
-                                                fanSetting === 0x00000001 ? 1 : fanSetting === 0x00000002 ? 2 : fanSetting === 0x00000003 ? 3 : 0;
-                                            logger.info(
-                                                `AC Unit ${acNo} fan speed set to ${paramForItem === 0 ? "auto" : paramForItem}`,
-                                                "zhc:lumi:vrfcontroller",
-                                            );
+                                            const paramForItem = ["auto", "low", "medium", "high"][fanSetting]; // fanSetting === 0x00000001 ? 1 : fanSetting === 0x00000002 ? 2 : fanSetting === 0x00000003 ? 3 : 0;
+                                            logger.info(`AC Unit ${acNo} fan speed set to ${paramForItem}`, "zhc:lumi:vrfcontroller");
+                                            result[`fan_mode_l${acNo}`] = paramForItem;
                                         } else {
                                             // Mode
                                             const modeSetting = val.readUint32();
@@ -5071,11 +5071,12 @@ export const fromZigbee = {
                                                       : modeSetting === 0x02
                                                         ? "dry"
                                                         : modeSetting === 0x03
-                                                          ? "fan only"
+                                                          ? "fan_only"
                                                           : modeSetting === 0x04
                                                             ? "heat"
                                                             : "unknown";
                                             logger.info(`AC Unit ${acNo} mode set to ${paramForItem}`, "zhc:lumi:vrfcontroller");
+                                            result[`system_mode_l${acNo}`] = paramForItem;
                                         }
                                     }
                                 }

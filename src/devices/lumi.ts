@@ -5418,7 +5418,7 @@ export const definitions: DefinitionWithExtend[] = [
                         e.climate().withSystemMode(["cool", "heat", "auto", "dry", "fan_only"]).withLocalTemperature().withEndpoint(epName),
                     );
                     features.push(e.climate().withFanMode(["auto", "low", "medium", "high"]).withEndpoint(epName));
-                    features.push(e.climate().withSetpoint("occupied_heating_setpoint", 5, 30, 0.5, ea.ALL).withEndpoint(epName));
+                    features.push(e.climate().withSetpoint("occupied_heating_setpoint", 16, 30, 1, ea.ALL).withEndpoint(epName));
                     // features.push(
                     //     e
                     //         .numeric("min_heat_setpoint_limit", ea.ALL)
@@ -5439,7 +5439,7 @@ export const definitions: DefinitionWithExtend[] = [
                     //         .withValueStep(0.5)
                     //         .withEndpoint(epName),
                     // );
-                    features.push(e.climate().withSetpoint("occupied_cooling_setpoint", 5, 38, 0.5, ea.ALL).withEndpoint(epName));
+                    features.push(e.climate().withSetpoint("occupied_cooling_setpoint", 16, 30, 1, ea.ALL).withEndpoint(epName));
                     // features.push(
                     //     e
                     //         .numeric("min_cool_setpoint_limit", ea.ALL)
