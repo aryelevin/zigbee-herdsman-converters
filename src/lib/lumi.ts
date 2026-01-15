@@ -6919,6 +6919,24 @@ export const toZigbee = {
     aqara_vrf_controller: {
         key: ["state", "system_mode", "occupied_heating_setpoint", "fan_mode"],
         convertSet: async (entity, key, value, meta) => {
+            function getHexFromFloat32Bit(floatValue: number) {
+                // Create an ArrayBuffer of 4 bytes (32 bits)
+                const buffer = new ArrayBuffer(4);
+                // Create a DataView to manipulate the buffer
+                const view = new DataView(buffer);
+
+                // Set the float value at offset 0 as a 32-bit float (IEEE 754 single precision)
+                // The 'false' argument indicates little-endian byte order.
+                // Change to 'true' for big-endian if needed.
+                view.setFloat32(0, floatValue, false);
+
+                // Read the 32-bit value as an unsigned integer
+                const uint32 = view.getUint32(0, false);
+
+                // Convert the unsigned integer to a hexadecimal string and pad with leading zeros
+                return uint32; //(`00000000${uint32.toString(16)}`).slice(-8);
+            }
+
             const sendAttr = async (attrCode: number, value: number, length: number) => {
                 // @ts-expect-error ignore
                 entity.sendSeq = ((entity.sendSeq || 0) + 1) % 256;
@@ -6945,38 +6963,35 @@ export const toZigbee = {
                 }
                 await entity.write("manuSpecificLumi", {65521: {value: Buffer.concat([val, v]), type: 0x41}}, {manufacturerCode: manufacturerCode});
             };
+            const ACNo = Number.parseInt(meta.endpoint_name.slice(1), 10);
+            logger.info(`AC set state for AC number: ${ACNo}`, "zhc:lumi:vrfcontroller");
+
             switch (key) {
-                case "feed":
-                    await sendAttr(0x04150055, 1, 1);
+                case "state":
+                    await sendAttr(Buffer.from([0x04, ACNo, 0x00, 0x55]).readUInt32BE(), getFromLookup(value, {ON: 1, OFF: 0}), 1);
+                    logger.info(`AC set state for AC number: ${ACNo}, state: ${value}`, "zhc:lumi:vrfcontroller");
                     break;
-                case "schedule": {
-                    const schedule: string[] = [];
-                    // @ts-expect-error ignore
-                    value.forEach((item) => {
-                        const schedItem = Buffer.from([getKey(feederDaysLookup, item.days, 0x7f), item.hour, item.minute, item.size, 0]);
-                        schedule.push(schedItem.toString("hex"));
-                    });
-                    const val = Buffer.concat([Buffer.from(schedule.join(",")), Buffer.from([0])]);
-                    // @ts-expect-error ignore
-                    await sendAttr(0x080008c8, val, val.length);
+                case "system_mode": {
+                    await sendAttr(
+                        Buffer.from([0x0e, ACNo + 139, 0x00, 0x55]).readUInt32BE(),
+                        getFromLookup(value, {cool: 0x00000001, dry: 0x00000002, fan_only: 0x00000003, heat: 0x00000004, auto: 0x00000000}),
+                        4,
+                    );
+                    logger.info(`AC set system_mode for AC number: ${ACNo}, state: ${value}`, "zhc:lumi:vrfcontroller");
                     break;
                 }
-                case "led_indicator":
-                    await sendAttr(0x04170055, getFromLookup(value, {ON: 1, OFF: 0}), 1);
+                case "fan_mode":
+                    await sendAttr(
+                        Buffer.from([0x0e, ACNo, 0x00, 0x55]).readUInt32BE(),
+                        getFromLookup(value, {auto: 0x00000000, low: 0x00000001, medium: 0x00000002, high: 0x00000003}),
+                        4,
+                    );
+                    logger.info(`AC set fan_mode for AC number: ${ACNo}, state: ${value}`, "zhc:lumi:vrfcontroller");
                     break;
-                case "child_lock":
-                    await sendAttr(0x04160055, getFromLookup(value, {UNLOCK: 0, LOCK: 1}), 1);
-                    break;
-                case "mode":
-                    await sendAttr(0x04180055, getFromLookup(value, {manual: 0, schedule: 1}), 1);
-                    break;
-                case "serving_size":
-                    // @ts-expect-error ignore
-                    await sendAttr(0x0e5c0055, value, 4);
-                    break;
-                case "portion_weight":
-                    // @ts-expect-error ignore
-                    await sendAttr(0x0e5f0055, value, 4);
+                case "occupied_heating_setpoint":
+                case "occupied_cooling_setpoint":
+                    await sendAttr(Buffer.from([0x01, ACNo, 0x00, 0x55]).readUInt32BE(), getHexFromFloat32Bit((value as number) * 100), 4);
+                    logger.info(`AC set ${key} for AC number: ${ACNo}, state: ${value}`, "zhc:lumi:vrfcontroller");
                     break;
                 default: // Unknown key
                     logger.warning(`Unhandled key ${key}`, "zhc:lumi:vrfcontroller");
