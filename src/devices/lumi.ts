@@ -7,6 +7,7 @@ import * as lumi from "../lib/lumi";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -5401,23 +5402,129 @@ export const definitions: DefinitionWithExtend[] = [
         description: "VRF Controller T1",
         fromZigbee: [lumi.fromZigbee.aqara_vrf_coontroller],
         toZigbee: [lumi.toZigbee.aqara_vrf_controller],
-        exposes: [
+        exposes: (device, options) => {
+            logger.info(`Aqara VRF Controller T1 device: ${JSON.stringify(device)}`, NS);
+            logger.info(`Aqara VRF Controller T1 device options: ${JSON.stringify(options)}`, NS);
+            const features = [];
+
+            if (!utils.isDummyDevice(device)) {
+                for (let i = 1; i <= 16; i++) {
+                    const endpoint = device?.getEndpoint(i);
+                    if (endpoint !== undefined) {
+                        const epName = `l${i}`;
+                        features.push(e.climate().withSystemMode(["off", "cool", "heat"]).withLocalTemperature().withEndpoint(epName));
+                        features.push(e.climate().withSetpoint("occupied_heating_setpoint", 5, 30, 0.5, ea.ALL).withEndpoint(epName));
+                        features.push(
+                            e
+                                .numeric("min_heat_setpoint_limit", ea.ALL)
+                                .withUnit("°C")
+                                .withDescription("Minimum Heating set point limit")
+                                .withValueMin(5)
+                                .withValueMax(30)
+                                .withValueStep(0.5)
+                                .withEndpoint(epName),
+                        );
+                        features.push(
+                            e
+                                .numeric("max_heat_setpoint_limit", ea.ALL)
+                                .withUnit("°C")
+                                .withDescription("Maximum Heating set point limit")
+                                .withValueMin(5)
+                                .withValueMax(30)
+                                .withValueStep(0.5)
+                                .withEndpoint(epName),
+                        );
+                        features.push(e.climate().withSetpoint("occupied_cooling_setpoint", 5, 38, 0.5, ea.ALL).withEndpoint(epName));
+                        features.push(
+                            e
+                                .numeric("min_cool_setpoint_limit", ea.ALL)
+                                .withUnit("°C")
+                                .withDescription("Minimum Cooling point limit")
+                                .withValueMin(5)
+                                .withValueMax(38)
+                                .withValueStep(0.5)
+                                .withEndpoint(epName),
+                        );
+                        features.push(
+                            e
+                                .numeric("max_cool_setpoint_limit", ea.ALL)
+                                .withUnit("°C")
+                                .withDescription("Maximum Cooling set point limit")
+                                .withValueMin(5)
+                                .withValueMax(38)
+                                .withValueStep(0.5)
+                                .withEndpoint(epName),
+                        );
+                    }
+                }
+            }
+
+            return features;
+        },
+        // exposes: [
+        //     e
+        //         .list(
+        //             "acUnits",
+        //             ea.STATE_SET,
+        //             e
+        //                 .composite("acUnit", "acUnit", exposes.access.STATE_SET)
+        //                 .withFeature(e.binary("state", exposes.access.STATE_SET, "ON", "OFF"))
+        //                 .withFeature(e.enum("mode", exposes.access.STATE_SET, ["heat", "cool", "auto", "dry", "fan_only"]))
+        //                 .withFeature(e.enum("fan_mode", exposes.access.STATE_SET, ["auto", "low", "medium", "high"]))
+        //                 .withFeature(e.numeric("cooling_temperature_setpoint", exposes.access.STATE_SET))
+        //                 .withFeature(e.numeric("heating_temperature_setpoint", exposes.access.STATE_SET))
+        //                 .withFeature(e.numeric("local_temperature", exposes.access.STATE_SET)),
+        //         )
+        //         .withDescription("AC Units"),
+        // ],
+        options: [
             e
-                .list(
-                    "acUnits",
-                    ea.STATE_SET,
-                    e
-                        .composite("acUnit", "acUnit", exposes.access.STATE_SET)
-                        .withFeature(e.binary("state", exposes.access.STATE_SET, "ON", "OFF"))
-                        .withFeature(e.enum("mode", exposes.access.STATE_SET, ["heat", "cool", "auto", "dry", "fan_only"]))
-                        .withFeature(e.enum("fan_mode", exposes.access.STATE_SET, ["auto", "low", "medium", "high"]))
-                        .withFeature(e.numeric("cooling_temperature_setpoint", exposes.access.STATE_SET))
-                        .withFeature(e.numeric("heating_temperature_setpoint", exposes.access.STATE_SET))
-                        .withFeature(e.numeric("local_temperature", exposes.access.STATE_SET)),
-                )
-                .withDescription("AC Units"),
+                .numeric("ac_amount", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(64)
+                .withValueStep(1)
+                .withUnit("")
+                .withCategory("config")
+                .withDescription("Minimum target temperature for the thermostat (default: 5°C)"),
+            e
+                .numeric("underfloor_heater_amount", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(32)
+                .withValueStep(1)
+                .withUnit("")
+                .withCategory("config")
+                .withDescription("Maximum target temperature for the thermostat (default: 30°C)"),
+            e
+                .numeric("free_air_amount", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(16)
+                .withValueStep(1)
+                .withUnit("")
+                .withCategory("config")
+                .withDescription("Maximum target temperature for the thermostat (default: 30°C)"),
         ],
         extend: [lumiZigbeeOTA(), m.forcePowerSource({powerSource: "Mains (single phase)"})],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {
+                l1: 1,
+                l2: 2,
+                l3: 3,
+                l4: 4,
+                l5: 5,
+                l6: 6,
+                l7: 7,
+                l8: 8,
+                l9: 9,
+                l10: 10,
+                l11: 11,
+                l12: 12,
+                l13: 13,
+                l14: 14,
+                l15: 15,
+                l16: 16,
+            };
+        },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read("manuSpecificLumi", [0xfff1], {manufacturerCode: manufacturerCode});
