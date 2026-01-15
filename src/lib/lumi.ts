@@ -1,5 +1,4 @@
 import {Buffer} from "node:buffer";
-
 import * as fz from "../converters/fromZigbee";
 import * as exposes from "./exposes";
 import {logger} from "./logger";
@@ -5006,10 +5005,12 @@ export const fromZigbee = {
                         logger.info(`Received VRF controller data: ${value}`, "zhc:lumi:vrfcontroller");
                         // @ts-expect-error ignore
                         const singleOrMultiplePartType = value.slice(1, 2).readUInt8();
+                        logger.debug(`Single or multi part type: ${singleOrMultiplePartType}`, "zhc:lumi:vrfcontroller");
                         // Multi-part is 0x80 which i don't support for now (very complicated)
                         if (singleOrMultiplePartType === 0x00) {
                             // @ts-expect-error ignore
                             const commandType = value.slice(2, 3).readUInt8();
+                            logger.debug(`Command type: ${commandType}`, "zhc:lumi:vrfcontroller");
                             // 0x05 is just report of some parameters and 0x09 is a full AC parameter report
                             if (commandType === 0x05 || commandType === 0x09) {
                                 // @ts-expect-error ignore
@@ -5018,6 +5019,10 @@ export const fromZigbee = {
                                 const len = value.slice(7, 8).readUInt8();
                                 // @ts-expect-error ignore
                                 const val = value.slice(8, 8 + len);
+                                logger.debug(
+                                    `Attribute: ${attr.toString("hex")}, Length: ${len}, Value: ${val.toString("hex")}`,
+                                    "zhc:lumi:vrfcontroller",
+                                );
 
                                 const param = attr.slice(0, 1).readUInt8();
                                 const paramACNo = attr.slice(1, 2).readUInt8();
