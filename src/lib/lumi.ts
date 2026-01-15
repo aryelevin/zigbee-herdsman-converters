@@ -5004,12 +5004,12 @@ export const fromZigbee = {
                         }
                         logger.info(`Received VRF controller data: ${value}`, "zhc:lumi:vrfcontroller");
                         // @ts-expect-error ignore
-                        const singleOrMultiplePartType = value.slice(1, 2).readUInt8();
+                        const singleOrMultiplePartType = value.slice(0, 1).readUInt8();
                         logger.debug(`Single or multi part type: ${singleOrMultiplePartType}`, "zhc:lumi:vrfcontroller");
                         // Multi-part is 0x80 which i don't support for now (very complicated)
                         if (singleOrMultiplePartType === 0x00) {
                             // @ts-expect-error ignore
-                            const commandType = value.slice(2, 3).readUInt8();
+                            const commandType = value.slice(1, 2).readUInt8();
                             logger.debug(`Command type: ${commandType}`, "zhc:lumi:vrfcontroller");
                             // 0x05 is just report of some parameters and 0x09 is a full AC parameter report
                             if (commandType === 0x05 || commandType === 0x09) {
