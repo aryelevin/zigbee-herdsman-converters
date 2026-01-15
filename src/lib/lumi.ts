@@ -4980,91 +4980,161 @@ export const fromZigbee = {
         cluster: "manuSpecificLumi",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
+            function getFloatFromHex32Bit(hexString: string): number {
+                // Create an ArrayBuffer of 4 bytes (for a 32-bit float)
+                const buffer = new ArrayBuffer(4);
+                // Create a DataView to manipulate the buffer
+                const view = new DataView(buffer);
+
+                // Parse the hex string as an integer and set it in the DataView
+                // Assumes big-endian for this example, adjust if your hex is little-endian
+                view.setUint32(0, Number.parseInt(hexString, 16), false); // false for big-endian
+
+                // Read the float value from the DataView
+                return view.getFloat32(0, false); // false for big-endian
+            }
+
             const result: KeyValue = {};
             Object.entries(msg.data).forEach(([key, value]) => {
                 switch (Number.parseInt(key, 10)) {
                     case 0xfff1: {
                         // @ts-expect-error ignore
                         if (value.length < 8) {
-                            logger.debug(`Cannot handle ${value}, frame too small`, "zhc:lumi:feeder");
+                            logger.debug(`Cannot handle ${value}, frame too small`, "zhc:lumi:vrfcontroller");
                             return;
                         }
                         // @ts-expect-error ignore
-                        const attr = value.slice(3, 7);
-                        // @ts-expect-error ignore
-                        const len = value.slice(7, 8).readUInt8();
-                        // @ts-expect-error ignore
-                        const val = value.slice(8, 8 + len);
-                        switch (attr.readInt32BE()) {
-                            case 0x04150055: // feeding
-                                result.feed = "";
-                                break;
-                            case 0x041502bc: {
-                                // feeding report
-                                const report = val.toString();
-                                result.feeding_source = {0: "schedule", 1: "manual", 2: "remote"}[Number.parseInt(report.slice(0, 2), 10)];
-                                result.feeding_size = Number.parseInt(report.slice(3, 4), 10);
-                                break;
-                            }
-                            case 0x0d680055: // portions per day
-                                result.portions_per_day = val.readUInt16BE();
-                                break;
-                            case 0x0d690055: // weight per day
-                                result.weight_per_day = val.readUInt32BE();
-                                break;
-                            case 0x0d0b0055: // error ?
-                                result.error = getFromLookup(val.readUInt8(), {1: true, 0: false});
-                                break;
-                            case 0x080008c8: {
-                                // schedule string
-                                const schlist = val.toString().split(",");
-                                const schedule: unknown[] = [];
-                                schlist.forEach((str: string) => {
-                                    // 7f13000100
-                                    if (str !== "//") {
-                                        const feedtime = Buffer.from(str, "hex");
-                                        schedule.push({
-                                            days: getFromLookup(feedtime[0], feederDaysLookup),
-                                            hour: feedtime[1],
-                                            minute: feedtime[2],
-                                            size: feedtime[3],
-                                        });
+                        const singleOrMultiplePartType = value.slice(1, 2).readUInt8();
+                        // Multi-part is 0x80 which i don't support for now (very complicated)
+                        if (singleOrMultiplePartType === 0x00) {
+                            // @ts-expect-error ignore
+                            const commandType = value.slice(2, 3);
+                            // 0x05 is just report of some parameters and 0x09 is a full AC parameter report
+                            if (commandType === 0x05 || commandType === 0x09) {
+                                // @ts-expect-error ignore
+                                const attr = value.slice(3, 7);
+                                // @ts-expect-error ignore
+                                const len = value.slice(7, 8).readUInt8();
+                                // @ts-expect-error ignore
+                                const val = value.slice(8, 8 + len);
+
+                                const param = attr.slice(0, 1).readUInt8();
+                                const paramACNo = attr.slice(1, 2).readUInt8();
+                                const acNo = param === 0x0e && paramACNo >= 0x8c ? paramACNo - 139 : paramACNo;
+
+                                if (param === 0x04) {
+                                    // On-Off
+                                    const paramForItem = !(val.readUInt8() === 0x00);
+                                    logger.info(`AC Unit ${acNo} is now turned ${paramForItem ? "ON" : "OFF"}`, "zhc:lumi:vrfcontroller");
+                                } else if (param === 0x01) {
+                                    // Target temp
+                                    const paramForItem = getFloatFromHex32Bit(val);
+                                    logger.info(`AC Unit ${acNo} target temperature set to ${paramForItem}°C`, "zhc:lumi:vrfcontroller");
+                                } else if (param === 0x00) {
+                                    // Current temp
+                                    const paramForItem = getFloatFromHex32Bit(val);
+                                    logger.info(`AC Unit ${acNo} current temperature is ${paramForItem}°C`, "zhc:lumi:vrfcontroller");
+                                } else if (param === 0x0e) {
+                                    if (paramACNo < 0x8c) {
+                                        // Fan
+                                        const fanSetting = val.readUint32();
+                                        const paramForItem =
+                                            fanSetting === 0x00000001 ? 1 : fanSetting === 0x00000002 ? 2 : fanSetting === 0x00000003 ? 3 : 0;
+                                        logger.info(
+                                            `AC Unit ${acNo} fan speed set to ${paramForItem === 0 ? "auto" : paramForItem}`,
+                                            "zhc:lumi:vrfcontroller",
+                                        );
+                                    } else {
+                                        // Mode
+                                        const modeSetting = val.readUint32();
+                                        const paramForItem =
+                                            modeSetting === 0x00
+                                                ? "auto"
+                                                : modeSetting === 0x01
+                                                  ? "cool"
+                                                  : modeSetting === 0x02
+                                                    ? "dry"
+                                                    : modeSetting === 0x03
+                                                      ? "fan only"
+                                                      : modeSetting === 0x04
+                                                        ? "heat"
+                                                        : "unknown";
+                                        logger.info(`AC Unit ${acNo} mode set to ${paramForItem}`, "zhc:lumi:vrfcontroller");
                                     }
-                                });
-                                result.schedule = schedule;
-                                break;
+                                }
+
+                                switch (attr.readInt32BE()) {
+                                    case 0x04150055: // feeding
+                                        result.feed = "";
+                                        break;
+                                    case 0x041502bc: {
+                                        // feeding report
+                                        const report = val.toString();
+                                        result.feeding_source = {0: "schedule", 1: "manual", 2: "remote"}[Number.parseInt(report.slice(0, 2), 10)];
+                                        result.feeding_size = Number.parseInt(report.slice(3, 4), 10);
+                                        break;
+                                    }
+                                    case 0x0d680055: // portions per day
+                                        result.portions_per_day = val.readUInt16BE();
+                                        break;
+                                    case 0x0d690055: // weight per day
+                                        result.weight_per_day = val.readUInt32BE();
+                                        break;
+                                    case 0x0d0b0055: // error ?
+                                        result.error = getFromLookup(val.readUInt8(), {1: true, 0: false});
+                                        break;
+                                    case 0x080008c8: {
+                                        // schedule string
+                                        const schlist = val.toString().split(",");
+                                        const schedule: unknown[] = [];
+                                        schlist.forEach((str: string) => {
+                                            // 7f13000100
+                                            if (str !== "//") {
+                                                const feedtime = Buffer.from(str, "hex");
+                                                schedule.push({
+                                                    days: getFromLookup(feedtime[0], feederDaysLookup),
+                                                    hour: feedtime[1],
+                                                    minute: feedtime[2],
+                                                    size: feedtime[3],
+                                                });
+                                            }
+                                        });
+                                        result.schedule = schedule;
+                                        break;
+                                    }
+                                    case 0x04170055: // indicator
+                                        result.led_indicator = getFromLookup(val.readUInt8(), {1: "ON", 0: "OFF"});
+                                        break;
+                                    case 0x04160055: // child lock
+                                        result.child_lock = getFromLookup(val.readUInt8(), {1: "LOCK", 0: "UNLOCK"});
+                                        break;
+                                    case 0x04180055: // mode
+                                        result.mode = getFromLookup(val.readUInt8(), {1: "schedule", 0: "manual"});
+                                        break;
+                                    case 0x0e5c0055: // serving size
+                                        result.serving_size = val.readUInt8();
+                                        break;
+                                    case 0x0e5f0055: // portion weight
+                                        result.portion_weight = val.readUInt8();
+                                        break;
+                                    case 0x080007d1: // ? 64
+                                    case 0x0d090055: // ? 00
+                                        logger.debug(`Unhandled attribute ${attr} = ${val}`, "zhc:lumi:vrfcontroller");
+                                        break;
+                                    default:
+                                        logger.debug(`Unknown attribute ${attr} = ${val}`, "zhc:lumi:vrfcontroller");
+                                }
                             }
-                            case 0x04170055: // indicator
-                                result.led_indicator = getFromLookup(val.readUInt8(), {1: "ON", 0: "OFF"});
-                                break;
-                            case 0x04160055: // child lock
-                                result.child_lock = getFromLookup(val.readUInt8(), {1: "LOCK", 0: "UNLOCK"});
-                                break;
-                            case 0x04180055: // mode
-                                result.mode = getFromLookup(val.readUInt8(), {1: "schedule", 0: "manual"});
-                                break;
-                            case 0x0e5c0055: // serving size
-                                result.serving_size = val.readUInt8();
-                                break;
-                            case 0x0e5f0055: // portion weight
-                                result.portion_weight = val.readUInt8();
-                                break;
-                            case 0x080007d1: // ? 64
-                            case 0x0d090055: // ? 00
-                                logger.debug(`Unhandled attribute ${attr} = ${val}`, "zhc:lumi:feeder");
-                                break;
-                            default:
-                                logger.debug(`Unknown attribute ${attr} = ${val}`, "zhc:lumi:feeder");
                         }
                         break;
                     }
                     case 0x00ff: // 80:13:58:91:24:33:20:24:58:53:44:07:05:97:75:17
                     case 0x0007: // 00:00:00:00:1d:b5:a6:ed
                     case 0x00f7: // 05:21:14:00:0d:23:21:25:00:00:09:21:00:01
-                        logger.debug(`Unhandled key ${key} = ${value}`, "zhc:lumi:feeder");
+                        logger.debug(`Unhandled key ${key} = ${value}`, "zhc:lumi:vrfcontroller");
                         break;
                     default:
-                        logger.debug(`Unknown key ${key} = ${value}`, "zhc:lumi:feeder");
+                        logger.debug(`Unknown key ${key} = ${value}`, "zhc:lumi:vrfcontroller");
                 }
             });
             return result;
