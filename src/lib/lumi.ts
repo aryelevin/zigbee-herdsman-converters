@@ -6917,7 +6917,7 @@ export const toZigbee = {
     } satisfies Tz.Converter,
 
     aqara_vrf_controller: {
-        key: ["feed", "schedule", "led_indicator", "child_lock", "mode", "serving_size", "portion_weight"],
+        key: ["state", "system_mode", "occupied_heating_setpoint", "fan_mode"],
         convertSet: async (entity, key, value, meta) => {
             const sendAttr = async (attrCode: number, value: number, length: number) => {
                 // @ts-expect-error ignore
@@ -6979,7 +6979,7 @@ export const toZigbee = {
                     await sendAttr(0x0e5f0055, value, 4);
                     break;
                 default: // Unknown key
-                    logger.warning(`Unhandled key ${key}`, "zhc:lumi:feeder");
+                    logger.warning(`Unhandled key ${key}`, "zhc:lumi:vrfcontroller");
             }
             return {state: {[key]: value}};
         },
