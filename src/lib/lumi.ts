@@ -5049,6 +5049,7 @@ export const fromZigbee = {
                                         // Current temp
                                         const paramForItem = getFloatFromHex32Bit(val.toString("hex"));
                                         logger.info(`AC Unit ${acNo} current temperature is ${paramForItem}°C`, "zhc:lumi:vrfcontroller");
+                                        result[`local_temperature_l${acNo}`] = paramForItem / 100;
                                     } else if (param === 0x0e) {
                                         if (paramACNo < 0x8c) {
                                             // Fan
