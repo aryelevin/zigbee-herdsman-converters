@@ -6964,12 +6964,12 @@ export const toZigbee = {
                 await entity.write("manuSpecificLumi", {65521: {value: Buffer.concat([val, v]), type: 0x41}}, {manufacturerCode: manufacturerCode});
             };
             const ACNo = Number.parseInt(meta.endpoint_name.slice(1), 10);
-            logger.info(`AC set state for AC number: ${ACNo}`, "zhc:lumi:vrfcontroller");
+            // logger.info(`AC set state for AC number: ${ACNo}`, "zhc:lumi:vrfcontroller");
 
             switch (key) {
                 case "state":
                     await sendAttr(Buffer.from([0x04, ACNo, 0x00, 0x55]).readUInt32BE(), getFromLookup(value, {ON: 1, OFF: 0}), 1);
-                    logger.info(`AC set state for AC number: ${ACNo}, state: ${value}`, "zhc:lumi:vrfcontroller");
+                    logger.debug(`AC set state ${value} for AC number: ${ACNo}`, "zhc:lumi:vrfcontroller");
                     break;
                 case "system_mode": {
                     await sendAttr(
@@ -6977,7 +6977,7 @@ export const toZigbee = {
                         getFromLookup(value, {cool: 0x00000001, dry: 0x00000002, fan_only: 0x00000003, heat: 0x00000004, auto: 0x00000000}),
                         4,
                     );
-                    logger.info(`AC set system_mode for AC number: ${ACNo}, state: ${value}`, "zhc:lumi:vrfcontroller");
+                    logger.debug(`AC set system_mode ${value} for AC number: ${ACNo}`, "zhc:lumi:vrfcontroller");
                     break;
                 }
                 case "fan_mode":
@@ -6986,12 +6986,12 @@ export const toZigbee = {
                         getFromLookup(value, {auto: 0x00000000, low: 0x00000001, medium: 0x00000002, high: 0x00000003}),
                         4,
                     );
-                    logger.info(`AC set fan_mode for AC number: ${ACNo}, state: ${value}`, "zhc:lumi:vrfcontroller");
+                    logger.debug(`AC set fan_mode ${value} for AC number: ${ACNo}`, "zhc:lumi:vrfcontroller");
                     break;
                 case "occupied_heating_setpoint":
                 case "occupied_cooling_setpoint":
                     await sendAttr(Buffer.from([0x01, ACNo, 0x00, 0x55]).readUInt32BE(), getHexFromFloat32Bit((value as number) * 100), 4);
-                    logger.info(`AC set ${key} for AC number: ${ACNo}, state: ${value}`, "zhc:lumi:vrfcontroller");
+                    logger.debug(`AC set ${key} ${value} for AC number: ${ACNo}`, "zhc:lumi:vrfcontroller");
                     break;
                 default: // Unknown key
                     logger.warning(`Unhandled key ${key}`, "zhc:lumi:vrfcontroller");
