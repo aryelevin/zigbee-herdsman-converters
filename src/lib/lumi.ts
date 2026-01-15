@@ -5034,11 +5034,11 @@ export const fromZigbee = {
                                     logger.info(`AC Unit ${acNo} is now turned ${paramForItem ? "ON" : "OFF"}`, "zhc:lumi:vrfcontroller");
                                 } else if (param === 0x01) {
                                     // Target temp
-                                    const paramForItem = getFloatFromHex32Bit(val.toString());
+                                    const paramForItem = getFloatFromHex32Bit(val.toString("hex"));
                                     logger.info(`AC Unit ${acNo} target temperature set to ${paramForItem}°C`, "zhc:lumi:vrfcontroller");
                                 } else if (param === 0x00) {
                                     // Current temp
-                                    const paramForItem = getFloatFromHex32Bit(val.toString());
+                                    const paramForItem = getFloatFromHex32Bit(val.toString("hex"));
                                     logger.info(`AC Unit ${acNo} current temperature is ${paramForItem}°C`, "zhc:lumi:vrfcontroller");
                                 } else if (param === 0x0e) {
                                     if (paramACNo < 0x8c) {
