@@ -5407,54 +5407,55 @@ export const definitions: DefinitionWithExtend[] = [
             logger.info(`Aqara VRF Controller T1 device options: ${JSON.stringify(options)}`, NS);
             const features = [];
 
-            if (!utils.isDummyDevice(device)) {
-                for (let i = 1; i <= 16; i++) {
+            if (!utils.isDummyDevice(device) && options?.ac_amount !== undefined && typeof options.ac_amount === "number") {
+                // TODO: get it from device instead of options
+                for (let i = 1; i <= options.ac_amount; i++) {
                     const endpoint = device?.getEndpoint(i);
                     if (endpoint !== undefined) {
                         const epName = `l${i}`;
                         features.push(e.climate().withSystemMode(["off", "cool", "heat"]).withLocalTemperature().withEndpoint(epName));
                         features.push(e.climate().withSetpoint("occupied_heating_setpoint", 5, 30, 0.5, ea.ALL).withEndpoint(epName));
-                        features.push(
-                            e
-                                .numeric("min_heat_setpoint_limit", ea.ALL)
-                                .withUnit("°C")
-                                .withDescription("Minimum Heating set point limit")
-                                .withValueMin(5)
-                                .withValueMax(30)
-                                .withValueStep(0.5)
-                                .withEndpoint(epName),
-                        );
-                        features.push(
-                            e
-                                .numeric("max_heat_setpoint_limit", ea.ALL)
-                                .withUnit("°C")
-                                .withDescription("Maximum Heating set point limit")
-                                .withValueMin(5)
-                                .withValueMax(30)
-                                .withValueStep(0.5)
-                                .withEndpoint(epName),
-                        );
+                        // features.push(
+                        //     e
+                        //         .numeric("min_heat_setpoint_limit", ea.ALL)
+                        //         .withUnit("°C")
+                        //         .withDescription("Minimum Heating set point limit")
+                        //         .withValueMin(5)
+                        //         .withValueMax(30)
+                        //         .withValueStep(0.5)
+                        //         .withEndpoint(epName),
+                        // );
+                        // features.push(
+                        //     e
+                        //         .numeric("max_heat_setpoint_limit", ea.ALL)
+                        //         .withUnit("°C")
+                        //         .withDescription("Maximum Heating set point limit")
+                        //         .withValueMin(5)
+                        //         .withValueMax(30)
+                        //         .withValueStep(0.5)
+                        //         .withEndpoint(epName),
+                        // );
                         features.push(e.climate().withSetpoint("occupied_cooling_setpoint", 5, 38, 0.5, ea.ALL).withEndpoint(epName));
-                        features.push(
-                            e
-                                .numeric("min_cool_setpoint_limit", ea.ALL)
-                                .withUnit("°C")
-                                .withDescription("Minimum Cooling point limit")
-                                .withValueMin(5)
-                                .withValueMax(38)
-                                .withValueStep(0.5)
-                                .withEndpoint(epName),
-                        );
-                        features.push(
-                            e
-                                .numeric("max_cool_setpoint_limit", ea.ALL)
-                                .withUnit("°C")
-                                .withDescription("Maximum Cooling set point limit")
-                                .withValueMin(5)
-                                .withValueMax(38)
-                                .withValueStep(0.5)
-                                .withEndpoint(epName),
-                        );
+                        // features.push(
+                        //     e
+                        //         .numeric("min_cool_setpoint_limit", ea.ALL)
+                        //         .withUnit("°C")
+                        //         .withDescription("Minimum Cooling point limit")
+                        //         .withValueMin(5)
+                        //         .withValueMax(38)
+                        //         .withValueStep(0.5)
+                        //         .withEndpoint(epName),
+                        // );
+                        // features.push(
+                        //     e
+                        //         .numeric("max_cool_setpoint_limit", ea.ALL)
+                        //         .withUnit("°C")
+                        //         .withDescription("Maximum Cooling set point limit")
+                        //         .withValueMin(5)
+                        //         .withValueMax(38)
+                        //         .withValueStep(0.5)
+                        //         .withEndpoint(epName),
+                        // );
                     }
                 }
             }
