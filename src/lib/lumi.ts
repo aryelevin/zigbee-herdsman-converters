@@ -5009,7 +5009,7 @@ export const fromZigbee = {
                         // Multi-part is 0x80 which i don't support for now (very complicated)
                         if (singleOrMultiplePartType === 0x00) {
                             // @ts-expect-error ignore
-                            const commandType = value.slice(2, 3);
+                            const commandType = value.slice(2, 3).readUInt8();
                             // 0x05 is just report of some parameters and 0x09 is a full AC parameter report
                             if (commandType === 0x05 || commandType === 0x09) {
                                 // @ts-expect-error ignore
@@ -5029,11 +5029,11 @@ export const fromZigbee = {
                                     logger.info(`AC Unit ${acNo} is now turned ${paramForItem ? "ON" : "OFF"}`, "zhc:lumi:vrfcontroller");
                                 } else if (param === 0x01) {
                                     // Target temp
-                                    const paramForItem = getFloatFromHex32Bit(val);
+                                    const paramForItem = getFloatFromHex32Bit(val.toString());
                                     logger.info(`AC Unit ${acNo} target temperature set to ${paramForItem}°C`, "zhc:lumi:vrfcontroller");
                                 } else if (param === 0x00) {
                                     // Current temp
-                                    const paramForItem = getFloatFromHex32Bit(val);
+                                    const paramForItem = getFloatFromHex32Bit(val.toString());
                                     logger.info(`AC Unit ${acNo} current temperature is ${paramForItem}°C`, "zhc:lumi:vrfcontroller");
                                 } else if (param === 0x0e) {
                                     if (paramACNo < 0x8c) {
