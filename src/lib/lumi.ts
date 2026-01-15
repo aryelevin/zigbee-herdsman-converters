@@ -5003,6 +5003,7 @@ export const fromZigbee = {
                             logger.debug(`Cannot handle ${value}, frame too small`, "zhc:lumi:vrfcontroller");
                             return;
                         }
+                        logger.info(`Received VRF controller data: ${value}`, "zhc:lumi:vrfcontroller");
                         // @ts-expect-error ignore
                         const singleOrMultiplePartType = value.slice(1, 2).readUInt8();
                         // Multi-part is 0x80 which i don't support for now (very complicated)
