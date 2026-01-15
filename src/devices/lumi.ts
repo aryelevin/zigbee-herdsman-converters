@@ -5394,4 +5394,33 @@ export const definitions: DefinitionWithExtend[] = [
             lumi.lumiModernExtend.lumiZigbeeOTA(),
         ],
     },
+    {
+        zigbeeModel: ["aqara.airrtc.ecn001"],
+        model: "VRFKZQ11LM",
+        vendor: "Aqara",
+        description: "VRF Controller T1",
+        fromZigbee: [lumi.fromZigbee.aqara_vrf_coontroller],
+        toZigbee: [lumi.toZigbee.aqara_vrf_controller],
+        exposes: [
+            e
+                .list(
+                    "acUnits",
+                    ea.STATE_SET,
+                    e
+                        .composite("acUnit", "acUnit", exposes.access.STATE_SET)
+                        .withFeature(e.binary("state", exposes.access.STATE_SET, "ON", "OFF"))
+                        .withFeature(e.enum("mode", exposes.access.STATE_SET, ["heat", "cool", "auto", "dry", "fan_only"]))
+                        .withFeature(e.enum("fan_mode", exposes.access.STATE_SET, ["auto", "low", "medium", "high"]))
+                        .withFeature(e.numeric("cooling_temperature_setpoint", exposes.access.STATE_SET))
+                        .withFeature(e.numeric("heating_temperature_setpoint", exposes.access.STATE_SET))
+                        .withFeature(e.numeric("local_temperature", exposes.access.STATE_SET)),
+                )
+                .withDescription("AC Units"),
+        ],
+        extend: [lumiZigbeeOTA(), m.forcePowerSource({powerSource: "Mains (single phase)"})],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read("manuSpecificLumi", [0xfff1], {manufacturerCode: manufacturerCode});
+        },
+    },
 ];

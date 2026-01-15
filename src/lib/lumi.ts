@@ -4975,6 +4975,101 @@ export const fromZigbee = {
             }
         },
     } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
+
+    aqara_vrf_coontroller: {
+        cluster: "manuSpecificLumi",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValue = {};
+            Object.entries(msg.data).forEach(([key, value]) => {
+                switch (Number.parseInt(key, 10)) {
+                    case 0xfff1: {
+                        // @ts-expect-error ignore
+                        if (value.length < 8) {
+                            logger.debug(`Cannot handle ${value}, frame too small`, "zhc:lumi:feeder");
+                            return;
+                        }
+                        // @ts-expect-error ignore
+                        const attr = value.slice(3, 7);
+                        // @ts-expect-error ignore
+                        const len = value.slice(7, 8).readUInt8();
+                        // @ts-expect-error ignore
+                        const val = value.slice(8, 8 + len);
+                        switch (attr.readInt32BE()) {
+                            case 0x04150055: // feeding
+                                result.feed = "";
+                                break;
+                            case 0x041502bc: {
+                                // feeding report
+                                const report = val.toString();
+                                result.feeding_source = {0: "schedule", 1: "manual", 2: "remote"}[Number.parseInt(report.slice(0, 2), 10)];
+                                result.feeding_size = Number.parseInt(report.slice(3, 4), 10);
+                                break;
+                            }
+                            case 0x0d680055: // portions per day
+                                result.portions_per_day = val.readUInt16BE();
+                                break;
+                            case 0x0d690055: // weight per day
+                                result.weight_per_day = val.readUInt32BE();
+                                break;
+                            case 0x0d0b0055: // error ?
+                                result.error = getFromLookup(val.readUInt8(), {1: true, 0: false});
+                                break;
+                            case 0x080008c8: {
+                                // schedule string
+                                const schlist = val.toString().split(",");
+                                const schedule: unknown[] = [];
+                                schlist.forEach((str: string) => {
+                                    // 7f13000100
+                                    if (str !== "//") {
+                                        const feedtime = Buffer.from(str, "hex");
+                                        schedule.push({
+                                            days: getFromLookup(feedtime[0], feederDaysLookup),
+                                            hour: feedtime[1],
+                                            minute: feedtime[2],
+                                            size: feedtime[3],
+                                        });
+                                    }
+                                });
+                                result.schedule = schedule;
+                                break;
+                            }
+                            case 0x04170055: // indicator
+                                result.led_indicator = getFromLookup(val.readUInt8(), {1: "ON", 0: "OFF"});
+                                break;
+                            case 0x04160055: // child lock
+                                result.child_lock = getFromLookup(val.readUInt8(), {1: "LOCK", 0: "UNLOCK"});
+                                break;
+                            case 0x04180055: // mode
+                                result.mode = getFromLookup(val.readUInt8(), {1: "schedule", 0: "manual"});
+                                break;
+                            case 0x0e5c0055: // serving size
+                                result.serving_size = val.readUInt8();
+                                break;
+                            case 0x0e5f0055: // portion weight
+                                result.portion_weight = val.readUInt8();
+                                break;
+                            case 0x080007d1: // ? 64
+                            case 0x0d090055: // ? 00
+                                logger.debug(`Unhandled attribute ${attr} = ${val}`, "zhc:lumi:feeder");
+                                break;
+                            default:
+                                logger.debug(`Unknown attribute ${attr} = ${val}`, "zhc:lumi:feeder");
+                        }
+                        break;
+                    }
+                    case 0x00ff: // 80:13:58:91:24:33:20:24:58:53:44:07:05:97:75:17
+                    case 0x0007: // 00:00:00:00:1d:b5:a6:ed
+                    case 0x00f7: // 05:21:14:00:0d:23:21:25:00:00:09:21:00:01
+                        logger.debug(`Unhandled key ${key} = ${value}`, "zhc:lumi:feeder");
+                        break;
+                    default:
+                        logger.debug(`Unknown key ${key} = ${value}`, "zhc:lumi:feeder");
+                }
+            });
+            return result;
+        },
+    } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const toZigbee = {
@@ -6791,6 +6886,75 @@ export const toZigbee = {
             logger.info(`Aqara W100: thermostat_mode set to ${value}`, NS);
             const defaults = w100EnsureDefaults(meta);
             return {state: {...defaults, thermostat_mode: value}};
+        },
+    } satisfies Tz.Converter,
+
+    aqara_vrf_controller: {
+        key: ["feed", "schedule", "led_indicator", "child_lock", "mode", "serving_size", "portion_weight"],
+        convertSet: async (entity, key, value, meta) => {
+            const sendAttr = async (attrCode: number, value: number, length: number) => {
+                // @ts-expect-error ignore
+                entity.sendSeq = ((entity.sendSeq || 0) + 1) % 256;
+                // @ts-expect-error ignore
+                const val = Buffer.from([0x00, 0x02, entity.sendSeq, 0, 0, 0, 0, 0]);
+                // @ts-expect-error ignore
+                entity.sendSeq += 1;
+                val.writeInt32BE(attrCode, 3);
+                val.writeUInt8(length, 7);
+                let v = Buffer.alloc(length);
+                switch (length) {
+                    case 1:
+                        v.writeUInt8(value);
+                        break;
+                    case 2:
+                        v.writeUInt16BE(value);
+                        break;
+                    case 4:
+                        v.writeUInt32BE(value);
+                        break;
+                    default:
+                        // @ts-expect-error ignore
+                        v = value;
+                }
+                await entity.write("manuSpecificLumi", {65521: {value: Buffer.concat([val, v]), type: 0x41}}, {manufacturerCode: manufacturerCode});
+            };
+            switch (key) {
+                case "feed":
+                    await sendAttr(0x04150055, 1, 1);
+                    break;
+                case "schedule": {
+                    const schedule: string[] = [];
+                    // @ts-expect-error ignore
+                    value.forEach((item) => {
+                        const schedItem = Buffer.from([getKey(feederDaysLookup, item.days, 0x7f), item.hour, item.minute, item.size, 0]);
+                        schedule.push(schedItem.toString("hex"));
+                    });
+                    const val = Buffer.concat([Buffer.from(schedule.join(",")), Buffer.from([0])]);
+                    // @ts-expect-error ignore
+                    await sendAttr(0x080008c8, val, val.length);
+                    break;
+                }
+                case "led_indicator":
+                    await sendAttr(0x04170055, getFromLookup(value, {ON: 1, OFF: 0}), 1);
+                    break;
+                case "child_lock":
+                    await sendAttr(0x04160055, getFromLookup(value, {UNLOCK: 0, LOCK: 1}), 1);
+                    break;
+                case "mode":
+                    await sendAttr(0x04180055, getFromLookup(value, {manual: 0, schedule: 1}), 1);
+                    break;
+                case "serving_size":
+                    // @ts-expect-error ignore
+                    await sendAttr(0x0e5c0055, value, 4);
+                    break;
+                case "portion_weight":
+                    // @ts-expect-error ignore
+                    await sendAttr(0x0e5f0055, value, 4);
+                    break;
+                default: // Unknown key
+                    logger.warning(`Unhandled key ${key}`, "zhc:lumi:feeder");
+            }
+            return {state: {[key]: value}};
         },
     } satisfies Tz.Converter,
 };
