@@ -387,12 +387,18 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .climate()
                 .withSystemMode(["off", "heat", "cool", "auto", "dry", "fan_only"])
+                .withFanMode(["low", "medium", "high", "on", "auto"])
                 .withSetpoint("occupied_heating_setpoint", 8, 30, 1)
                 .withSetpoint("occupied_cooling_setpoint", 8, 30, 1)
                 .withAcLouverPosition(["fully_open", "fully_closed", "half_open", "quarter_open", "three_quarters_open"])
                 .withLocalTemperature(),
-            e.fan().withState("fan_state").withModes(["low", "medium", "high", "on", "auto"]),
-            e.numeric("ac_ir_code", ea.ALL).withUnit("").withValueMin(0).withValueMax(999).withDescription("AC IR Code"),
+            // e.fan().withState("fan_state").withModes(["low", "medium", "high", "on", "auto"]),
+            e
+                .numeric("ac_ir_code", ea.ALL)
+                .withUnit("")
+                .withValueMin(0)
+                .withValueMax(999)
+                .withDescription("AC IR Code"),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
