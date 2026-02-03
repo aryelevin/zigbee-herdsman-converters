@@ -4975,7 +4975,7 @@ export const fromZigbee = {
         },
     } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
 
-    aqara_vrf_coontroller: {
+    aqara_vrf_controller: {
         cluster: "manuSpecificLumi",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {

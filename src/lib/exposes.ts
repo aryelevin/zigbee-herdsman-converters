@@ -609,6 +609,11 @@ export class Climate extends Base {
     type = "climate" as const;
     features: Feature[] = [];
 
+    withOnOff(access = a.ALL, description = "On/off state of the AC") {
+        this.addFeature(new Binary("state", access, "ON", "OFF").withDescription(description));
+        return this;
+    }
+
     withSetpoint(property: string, min: number, max: number, step: number, access = a.ALL) {
         assert(
             [

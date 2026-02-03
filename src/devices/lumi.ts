@@ -5400,7 +5400,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VRFKZQ11LM",
         vendor: "Aqara",
         description: "VRF Controller T1",
-        fromZigbee: [lumi.fromZigbee.aqara_vrf_coontroller],
+        fromZigbee: [lumi.fromZigbee.aqara_vrf_controller],
         toZigbee: [lumi.toZigbee.aqara_vrf_controller],
         exposes: (device, options) => {
             // logger.info(`Aqara VRF Controller T1 device: ${JSON.stringify(device)}`, NS);
